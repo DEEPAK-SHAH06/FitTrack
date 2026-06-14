@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.fittrackkk.data.model.DietDay
 import com.example.fittrackkk.ui.theme.*
 import com.example.fittrackkk.viewmodel.DietViewModel
@@ -28,7 +30,9 @@ import com.example.fittrackkk.viewmodel.DietViewModel
 fun DayDetailScreen(
     dayNumber: Int,
     viewModel: DietViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onStartWorkout: () -> Unit,
+    onEditPlan: () -> Unit
 ) {
     val selectedDay by viewModel.selectedDay.collectAsState()
     val scrollState = rememberScrollState()
@@ -46,25 +50,15 @@ fun DayDetailScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
+                actions = {
+                    TextButton(onClick = onEditPlan) {
+                        Text("Edit Plan", color = MaterialTheme.colorScheme.primary)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
-        },
-        floatingActionButton = {
-            selectedDay?.let { day ->
-                FloatingActionButton(
-                    onClick = { viewModel.markDayCompleted(day.dayNumber) },
-                    shape = CircleShape,
-                    containerColor = if (day.isCompleted) SuccessGreen else MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
-                ) {
-                    Icon(
-                        imageVector = if (day.isCompleted) Icons.Default.Check else Icons.Default.Check,
-                        contentDescription = "Toggle Complete"
-                    )
-                }
-            }
         }
     ) { innerPadding ->
         Box(
@@ -135,7 +129,32 @@ fun DayDetailScreen(
                     MealItemCard("Afternoon Snack", day.afternoonSnack, day.afternoonSnackCalories)
                     MealItemCard("Dinner", day.dinner, day.dinnerCalories)
                     
-                    Spacer(modifier = Modifier.height(80.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Start Workout Button (Replacing the FAB)
+                    Button(
+                        onClick = onStartWorkout,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (day.isCompleted) SuccessGreen else MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(
+                            imageVector = if (day.isCompleted) Icons.Default.Check else Icons.Default.PlayArrow,
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = if (day.isCompleted) "Workout Completed" else "Start Workout",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             } ?: Box(
                 modifier = Modifier.fillMaxSize(),

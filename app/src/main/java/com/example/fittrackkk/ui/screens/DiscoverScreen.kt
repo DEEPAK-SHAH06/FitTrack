@@ -30,10 +30,11 @@ import com.example.fittrackkk.viewmodel.DiscoverViewModel
 @Composable
 fun DiscoverScreen(
     viewModel: DiscoverViewModel,
+    initialTab: Int = 0,
     onNavigateToRecipe: (Int) -> Unit,
     onNavigateToArticle: (Int) -> Unit
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by remember(initialTab) { mutableStateOf(initialTab) }
     val tabs = listOf("Recipes", "Health Info")
 
     val recipes by viewModel.recipes.collectAsState()

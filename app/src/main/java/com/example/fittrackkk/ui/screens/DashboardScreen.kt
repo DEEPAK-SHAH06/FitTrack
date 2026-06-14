@@ -12,10 +12,15 @@ import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.fittrackkk.viewmodel.*
+
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.HealthAndSafety
+import androidx.compose.material.icons.filled.Info
 
 @Composable
 fun DashboardScreen(
@@ -26,12 +31,14 @@ fun DashboardScreen(
     settingsViewModel: SettingsViewModel,
     authViewModel: AuthViewModel
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
+    val settingsState by settingsViewModel.uiState.collectAsState()
+    val selectedTab = settingsState.selectedTab
 
     val tabs = listOf(
         TabItem("Diet", Icons.Default.Restaurant),
         TabItem("Plan", Icons.Default.FitnessCenter),
-        TabItem("Discover", Icons.Default.Explore),
+        TabItem("Recipes", Icons.Default.MenuBook),
+        TabItem("Health", Icons.Default.Info),
         TabItem("Settings", Icons.Default.Settings)
     )
 
@@ -44,7 +51,7 @@ fun DashboardScreen(
                 tabs.forEachIndexed { index, tab ->
                     NavigationBarItem(
                         selected = selectedTab == index,
-                        onClick = { selectedTab = index },
+                        onClick = { settingsViewModel.setSelectedTab(index) },
                         icon = { Icon(tab.icon, contentDescription = tab.title) },
                         label = { Text(tab.title) },
                         colors = NavigationBarItemDefaults.colors(
@@ -66,16 +73,29 @@ fun DashboardScreen(
                     viewModel = dietViewModel,
                     onNavigateToDetail = { dayNumber ->
                         navController.navigate("day_detail/$dayNumber")
+                    },
+                    onNavigateToEdit = { dayNumber ->
+                        navController.navigate("edit_plan/$dayNumber")
+                    },
+                    onNavigateToCustom = {
+                        navController.navigate("my_meals")
                     }
                 )
                 1 -> PlanScreen(
                     viewModel = exerciseViewModel,
                     onNavigateToSession = { dayNumber ->
                         navController.navigate("exercise_session/$dayNumber")
+                    },
+                    onNavigateToEdit = { dayNumber ->
+                        navController.navigate("edit_plan/$dayNumber")
+                    },
+                    onNavigateToCustom = {
+                        navController.navigate("my_exercises")
                     }
                 )
                 2 -> DiscoverScreen(
                     viewModel = discoverViewModel,
+                    initialTab = 0,
                     onNavigateToRecipe = { recipeId ->
                         navController.navigate("recipe_detail/$recipeId")
                     },
@@ -83,7 +103,17 @@ fun DashboardScreen(
                         navController.navigate("article_detail/$articleId")
                     }
                 )
-                3 -> SettingsScreen(
+                3 -> DiscoverScreen(
+                    viewModel = discoverViewModel,
+                    initialTab = 1,
+                    onNavigateToRecipe = { recipeId ->
+                        navController.navigate("recipe_detail/$recipeId")
+                    },
+                    onNavigateToArticle = { articleId ->
+                        navController.navigate("article_detail/$articleId")
+                    }
+                )
+                4 -> SettingsScreen(
                     viewModel = settingsViewModel,
                     authViewModel = authViewModel,
                     onLoggedOut = {

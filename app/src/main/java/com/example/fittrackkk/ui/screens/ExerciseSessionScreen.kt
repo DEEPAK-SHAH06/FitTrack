@@ -14,11 +14,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fittrackkk.data.model.CustomExercise
 import com.example.fittrackkk.data.model.Exercise
 import com.example.fittrackkk.ui.theme.*
 import com.example.fittrackkk.viewmodel.ExerciseViewModel
@@ -28,9 +27,12 @@ import com.example.fittrackkk.viewmodel.ExerciseViewModel
 fun ExerciseSessionScreen(
     dayNumber: Int,
     viewModel: ExerciseViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onStartWorkout: () -> Unit,
+    onEditPlan: () -> Unit
 ) {
     val selectedDayExercises by viewModel.selectedDayExercises.collectAsState()
+    val selectedDayCustomExercises by viewModel.selectedDayCustomExercises.collectAsState()
     val selectedExerciseDay by viewModel.selectedExerciseDay.collectAsState()
 
     LaunchedEffect(dayNumber) {
@@ -44,6 +46,11 @@ fun ExerciseSessionScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    TextButton(onClick = onEditPlan) {
+                        Text("Edit Plan", color = MaterialTheme.colorScheme.primary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -80,11 +87,12 @@ fun ExerciseSessionScreen(
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("Exercises", style = MaterialTheme.typography.bodySmall, color = TextSecondaryLight)
-                                Text("${selectedDayExercises.size}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                Text("${selectedDayExercises.size + selectedDayCustomExercises.size}", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("Duration", style = MaterialTheme.typography.bodySmall, color = TextSecondaryLight)
-                                Text("~10 min", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                                val customMinutes = selectedDayCustomExercises.sumOf { it.durationMinutes }
+                                Text("~${10 + customMinutes} min", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                             }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("Status", style = MaterialTheme.typography.bodySmall, color = TextSecondaryLight)
@@ -106,6 +114,9 @@ fun ExerciseSessionScreen(
                         items(selectedDayExercises) { exercise ->
                             ExerciseListItem(exercise = exercise)
                         }
+                        items(selectedDayCustomExercises) { exercise ->
+                            CustomExerciseListItem(exercise = exercise)
+                        }
                         item {
                             Spacer(modifier = Modifier.height(80.dp))
                         }
@@ -113,25 +124,23 @@ fun ExerciseSessionScreen(
 
                     // Bottom Start/Complete Button
                     Button(
-                        onClick = {
-                            viewModel.markDayCompleted(dayNumber)
-                        },
+                        onClick = onStartWorkout,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 16.dp)
                             .height(52.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (day.isCompleted) WarningOrange else MaterialTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(
-                            imageVector = if (day.isCompleted) Icons.Default.PlayArrow else Icons.Default.FitnessCenter,
+                            imageVector = Icons.Default.PlayArrow,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = if (day.isCompleted) "Restart Workout" else "Mark Workout Completed",
+                            text = "Start Workout",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -201,6 +210,69 @@ fun ExerciseListItem(exercise: Exercise) {
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = "${exercise.durationSeconds}s",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CustomExerciseListItem(exercise: CustomExercise) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .background(
+                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.FitnessCenter,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = exercise.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = exercise.description.ifBlank { "Custom exercise" },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondaryLight
+                )
+            }
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Timer, contentDescription = null, modifier = Modifier.size(14.dp), tint = TextSecondaryLight)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${exercise.durationMinutes}m",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold
                     )

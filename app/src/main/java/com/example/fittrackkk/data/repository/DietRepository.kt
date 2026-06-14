@@ -1,10 +1,15 @@
 package com.example.fittrackkk.data.repository
 
+import com.example.fittrackkk.data.local.dao.CustomMealDao
 import com.example.fittrackkk.data.local.dao.DietDao
+import com.example.fittrackkk.data.model.CustomMeal
 import com.example.fittrackkk.data.model.DietDay
 import kotlinx.coroutines.flow.Flow
 
-class DietRepository(private val dietDao: DietDao) {
+class DietRepository(
+    private val dietDao: DietDao,
+    private val customMealDao: CustomMealDao
+) {
 
     fun getAllDietDays(): Flow<List<DietDay>> = dietDao.getAllDietDays()
 
@@ -27,4 +32,11 @@ class DietRepository(private val dietDao: DietDao) {
     suspend fun insertDietDay(dietDay: DietDay) = dietDao.insertDietDay(dietDay)
 
     suspend fun insertAllDietDays(days: List<DietDay>) = dietDao.insertAllDietDays(days)
+
+    // Custom Meal Operations
+    fun getAllCustomMeals(): Flow<List<CustomMeal>> = customMealDao.getAllCustomMeals()
+    suspend fun getCustomMealById(id: Int): CustomMeal? = customMealDao.getCustomMealById(id)
+    suspend fun insertCustomMeal(meal: CustomMeal) = customMealDao.insertCustomMeal(meal)
+    suspend fun updateCustomMeal(meal: CustomMeal) = customMealDao.updateCustomMeal(meal)
+    suspend fun deleteCustomMeal(meal: CustomMeal) = customMealDao.deleteCustomMeal(meal)
 }

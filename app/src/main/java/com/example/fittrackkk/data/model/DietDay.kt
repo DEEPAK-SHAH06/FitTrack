@@ -9,12 +9,16 @@ data class DietDay(
     val dayNumber: Int,
     val breakfast: String = "",
     val breakfastCalories: Int = 0,
+    val breakfastCustomId: Int? = null,
     val lunch: String = "",
     val lunchCalories: Int = 0,
+    val lunchCustomId: Int? = null,
     val afternoonSnack: String = "",
     val afternoonSnackCalories: Int = 0,
+    val afternoonSnackCustomId: Int? = null,
     val dinner: String = "",
     val dinnerCalories: Int = 0,
+    val dinnerCustomId: Int? = null,
     val isCompleted: Boolean = false,
     val completedAt: Long? = null
 ) {

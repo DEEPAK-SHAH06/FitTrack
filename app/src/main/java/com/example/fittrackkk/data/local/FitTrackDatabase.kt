@@ -12,8 +12,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Database(
-    entities = [UserProfile::class, DietDay::class, Exercise::class, ExerciseDay::class, Recipe::class, HealthArticle::class],
-    version = 1,
+    entities = [
+        UserProfile::class, 
+        DietDay::class, 
+        Exercise::class, 
+        ExerciseDay::class, 
+        Recipe::class, 
+        HealthArticle::class,
+        CustomMeal::class,
+        CustomExercise::class
+    ],
+    version = 3,
     exportSchema = false
 )
 abstract class FitTrackDatabase : RoomDatabase() {
@@ -22,6 +31,8 @@ abstract class FitTrackDatabase : RoomDatabase() {
     abstract fun exerciseDao(): ExerciseDao
     abstract fun recipeDao(): RecipeDao
     abstract fun healthArticleDao(): HealthArticleDao
+    abstract fun customMealDao(): CustomMealDao
+    abstract fun customExerciseDao(): CustomExerciseDao
 
     companion object {
         @Volatile

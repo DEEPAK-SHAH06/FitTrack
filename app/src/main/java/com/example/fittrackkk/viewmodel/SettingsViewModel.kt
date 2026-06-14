@@ -23,14 +23,15 @@ data class SettingsUiState(
     val editTargetWeight: String = "",
     val editAge: String = "",
     val editGender: String = "",
-    val message: String? = null
+    val message: String? = null,
+    val selectedTab: Int = 0
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val db = (application as FitTrackApp).database
     private val userRepository = UserRepository(db.userProfileDao(), FirebaseAuthManager(), FirebaseDataManager())
-    private val dietRepository = DietRepository(db.dietDao())
-    private val exerciseRepository = ExerciseRepository(db.exerciseDao())
+    private val dietRepository = DietRepository(db.dietDao(), db.customMealDao())
+    private val exerciseRepository = ExerciseRepository(db.exerciseDao(), db.customExerciseDao())
     private val preferencesManager = PreferencesManager(application)
 
     private val _uiState = MutableStateFlow(SettingsUiState())
@@ -47,6 +48,10 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 _uiState.value = _uiState.value.copy(isDarkMode = isDark)
             }
         }
+    }
+
+    fun setSelectedTab(index: Int) {
+        _uiState.value = _uiState.value.copy(selectedTab = index)
     }
 
     fun startEditing() {

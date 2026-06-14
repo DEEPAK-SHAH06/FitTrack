@@ -7,7 +7,8 @@ import androidx.room.PrimaryKey
 data class ExerciseDay(
     @PrimaryKey
     val dayNumber: Int,
-    val exerciseIds: String = "", // Comma-separated IDs
+    val exerciseIds: String = "", // Comma-separated default exercise IDs
+    val customExerciseIds: String = "", // Comma-separated custom exercise IDs
     val isCompleted: Boolean = false,
     val completedAt: Long? = null
 )

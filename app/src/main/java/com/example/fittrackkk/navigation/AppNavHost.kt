@@ -102,7 +102,13 @@ fun AppNavHost(
             DayDetailScreen(
                 dayNumber = dayNumber,
                 viewModel = dietViewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onStartWorkout = {
+                    navController.navigate(Screen.ActiveWorkout.createRoute(dayNumber))
+                },
+                onEditPlan = {
+                    navController.navigate(Screen.EditPlan.createRoute(dayNumber))
+                }
             )
         }
 
@@ -112,6 +118,24 @@ fun AppNavHost(
         ) { backStackEntry ->
             val dayNumber = backStackEntry.arguments?.getInt("dayNumber") ?: 1
             ExerciseSessionScreen(
+                dayNumber = dayNumber,
+                viewModel = exerciseViewModel,
+                onBack = { navController.popBackStack() },
+                onStartWorkout = {
+                    navController.navigate(Screen.ActiveWorkout.createRoute(dayNumber))
+                },
+                onEditPlan = {
+                    navController.navigate(Screen.EditPlan.createRoute(dayNumber))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.ActiveWorkout.route,
+            arguments = listOf(navArgument("dayNumber") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val dayNumber = backStackEntry.arguments?.getInt("dayNumber") ?: 1
+            ActiveWorkoutScreen(
                 dayNumber = dayNumber,
                 viewModel = exerciseViewModel,
                 onBack = { navController.popBackStack() }
@@ -139,6 +163,33 @@ fun AppNavHost(
                 articleId = articleId,
                 viewModel = discoverViewModel,
                 onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.MyMeals.route) {
+            MyMealsScreen(
+                viewModel = dietViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.MyExercises.route) {
+            MyExercisesScreen(
+                viewModel = exerciseViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.EditPlan.route,
+            arguments = listOf(navArgument("dayNumber") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val dayNumber = backStackEntry.arguments?.getInt("dayNumber") ?: 1
+            EditPlanScreen(
+                dayNumber = dayNumber,
+                dietViewModel = dietViewModel,
+                exerciseViewModel = exerciseViewModel,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

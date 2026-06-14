@@ -14,6 +14,23 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
     private val db = (application as FitTrackApp).database
     private val discoverRepository = DiscoverRepository(db.recipeDao(), db.healthArticleDao())
 
+    init {
+        viewModelScope.launch {
+            discoverRepository.getAllRecipes().first().let { recipes ->
+                if (recipes.isEmpty()) {
+                    val seedRecipes = com.example.fittrackkk.data.local.SeedData.getRecipes()
+                    seedRecipes.forEach { discoverRepository.insertRecipe(it) }
+                }
+            }
+            discoverRepository.getAllArticles().first().let { articles ->
+                if (articles.isEmpty()) {
+                    val seedArticles = com.example.fittrackkk.data.local.SeedData.getHealthArticles()
+                    seedArticles.forEach { discoverRepository.insertArticle(it) }
+                }
+            }
+        }
+    }
+
     val recipes: StateFlow<List<Recipe>> = discoverRepository.getAllRecipes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
