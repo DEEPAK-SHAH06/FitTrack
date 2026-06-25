@@ -31,6 +31,9 @@ class DietViewModel(application: Application) : AndroidViewModel(application) {
     val customMeals: StateFlow<List<CustomMeal>> = dietRepository.getAllCustomMeals()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val allRecipes: StateFlow<List<com.example.fittrackkk.data.model.Recipe>> = db.recipeDao().getAllRecipes()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val completedDaysCount: StateFlow<Int> = dietRepository.getCompletedDaysCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
@@ -104,6 +107,45 @@ class DietViewModel(application: Application) : AndroidViewModel(application) {
                         dinnerCalories = customMeal?.calories ?: defaultDay?.dinnerCalories ?: it.dinnerCalories,
                         dinnerCustomId = customMealId
                     )
+                    else -> it
+                }
+                dietRepository.updateDietDay(updatedDay)
+                _selectedDay.value = updatedDay
+            }
+        }
+    }
+
+    fun updateDayMealManual(dayNumber: Int, mealType: String, name: String, calories: Int, customId: Int?) {
+        viewModelScope.launch {
+            val day = dietRepository.getDietDayOnce(dayNumber)
+            val defaultDay = SeedData.getDietDays().find { it.dayNumber == dayNumber }
+
+            day?.let {
+                val finalName = if (name.isBlank()) (defaultDay?.let { d -> 
+                    when(mealType) {
+                        "Breakfast" -> d.breakfast
+                        "Lunch" -> d.lunch
+                        "Snack" -> d.afternoonSnack
+                        "Dinner" -> d.dinner
+                        else -> ""
+                    }
+                } ?: "") else name
+
+                val finalCalories = if (name.isBlank()) (defaultDay?.let { d ->
+                    when(mealType) {
+                        "Breakfast" -> d.breakfastCalories
+                        "Lunch" -> d.lunchCalories
+                        "Snack" -> d.afternoonSnackCalories
+                        "Dinner" -> d.dinnerCalories
+                        else -> 0
+                    }
+                } ?: 0) else calories
+
+                val updatedDay = when (mealType) {
+                    "Breakfast" -> it.copy(breakfast = finalName, breakfastCalories = finalCalories, breakfastCustomId = customId)
+                    "Lunch" -> it.copy(lunch = finalName, lunchCalories = finalCalories, lunchCustomId = customId)
+                    "Snack" -> it.copy(afternoonSnack = finalName, afternoonSnackCalories = finalCalories, afternoonSnackCustomId = customId)
+                    "Dinner" -> it.copy(dinner = finalName, dinnerCalories = finalCalories, dinnerCustomId = customId)
                     else -> it
                 }
                 dietRepository.updateDietDay(updatedDay)

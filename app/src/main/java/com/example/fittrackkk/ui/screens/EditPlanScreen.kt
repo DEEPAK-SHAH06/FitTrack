@@ -28,6 +28,7 @@ fun EditPlanScreen(
     val dayExercises by exerciseViewModel.selectedDayExercises.collectAsState()
     val dayCustomExercises by exerciseViewModel.selectedDayCustomExercises.collectAsState()
     val customMeals by dietViewModel.customMeals.collectAsState()
+    val allRecipes by dietViewModel.allRecipes.collectAsState()
     val customExercises by exerciseViewModel.customExercises.collectAsState()
     val allDefaultExercises by exerciseViewModel.allDefaultExercises.collectAsState()
 
@@ -98,9 +99,10 @@ fun EditPlanScreen(
             MealSelectionDialog(
                 title = "Select $type",
                 customMeals = customMeals.filter { it.category == type },
+                recipes = allRecipes.filter { it.category == type || it.category.contains(type, ignoreCase = true) },
                 onDismiss = { showMealSelectionFor = null },
-                onSelect = { customMealId ->
-                    dietViewModel.updateDayMeal(dayNumber, type, customMealId)
+                onSelect = { name, calories, customId ->
+                    dietViewModel.updateDayMealManual(dayNumber, type, name, calories, customId)
                     showMealSelectionFor = null
                 }
             )
@@ -155,22 +157,41 @@ fun PlanExerciseItem(name: String, duration: String, onDelete: () -> Unit) {
 fun MealSelectionDialog(
     title: String,
     customMeals: List<CustomMeal>,
+    recipes: List<com.example.fittrackkk.data.model.Recipe>,
     onDismiss: () -> Unit,
-    onSelect: (Int?) -> Unit
+    onSelect: (String, Int, Int?) -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(title) },
         text = {
-            LazyColumn {
+            LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
                 item {
-                    TextButton(onClick = { onSelect(null) }, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(onClick = { 
+                        // We need a way to reset to default, but updateDayMealManual needs values.
+                        // Let's handle reset in ViewModel or pass a reset flag.
+                        // For now, let's just use empty/default strings if reset.
+                        onSelect("", 0, null) 
+                    }, modifier = Modifier.fillMaxWidth()) {
                         Text("Reset to Default")
                     }
                 }
-                items(customMeals) { meal ->
-                    TextButton(onClick = { onSelect(meal.id) }, modifier = Modifier.fillMaxWidth()) {
-                        Text("${meal.name} (${meal.calories} kcal)")
+                
+                if (customMeals.isNotEmpty()) {
+                    item { Text("My Custom Meals", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(vertical = 8.dp)) }
+                    items(customMeals) { meal ->
+                        TextButton(onClick = { onSelect(meal.name, meal.calories, meal.id) }, modifier = Modifier.fillMaxWidth()) {
+                            Text("${meal.name} (${meal.calories} kcal)")
+                        }
+                    }
+                }
+
+                if (recipes.isNotEmpty()) {
+                    item { Text("Nepalese Recipes", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(vertical = 8.dp)) }
+                    items(recipes) { recipe ->
+                        TextButton(onClick = { onSelect(recipe.title, recipe.calories, null) }, modifier = Modifier.fillMaxWidth()) {
+                            Text("${recipe.title} (${recipe.calories} kcal)")
+                        }
                     }
                 }
             }
