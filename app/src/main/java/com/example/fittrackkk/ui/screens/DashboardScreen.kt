@@ -38,7 +38,6 @@ fun DashboardScreen(
         TabItem("Diet", Icons.Default.Restaurant),
         TabItem("Plan", Icons.Default.FitnessCenter),
         TabItem("Recipes", Icons.Default.MenuBook),
-        TabItem("Health", Icons.Default.Info),
         TabItem("Settings", Icons.Default.Settings)
     )
 
@@ -103,17 +102,17 @@ fun DashboardScreen(
                         navController.navigate("article_detail/$articleId")
                     }
                 )
-                3 -> DiscoverScreen(
-                    viewModel = discoverViewModel,
-                    initialTab = 1,
-                    onNavigateToRecipe = { recipeId ->
-                        navController.navigate("recipe_detail/$recipeId")
-                    },
-                    onNavigateToArticle = { articleId ->
-                        navController.navigate("article_detail/$articleId")
-                    }
-                )
-                4 -> SettingsScreen(
+//                3 -> DiscoverScreen(
+//                    viewModel = discoverViewModel,
+//                    initialTab = 1,
+//                    onNavigateToRecipe = { recipeId ->
+//                        navController.navigate("recipe_detail/$recipeId")
+//                    },
+//                    onNavigateToArticle = { articleId ->
+//                        navController.navigate("article_detail/$articleId")
+//                    }
+//                )
+                3 -> SettingsScreen(
                     viewModel = settingsViewModel,
                     authViewModel = authViewModel,
                     onLoggedOut = {
