@@ -60,6 +60,8 @@ fun DietScreenContent(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onNavigateToCustom,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 icon = { Icon(Icons.Default.RestaurantMenu, null) },
                 text = { Text("My Meals") }
             )
@@ -68,7 +70,7 @@ fun DietScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(bottom = innerPadding.calculateBottomPadding())
                 .background(MaterialTheme.colorScheme.background)
         ) {
             // Banner Header

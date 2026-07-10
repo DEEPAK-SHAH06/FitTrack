@@ -38,7 +38,11 @@ fun MyMealsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,) {
+
                 Icon(Icons.Default.Add, contentDescription = "Add Meal")
             }
         }

@@ -55,13 +55,16 @@ fun SplashScreenContent(
     val scale = remember { Animatable(0f) }
     val alpha = remember { Animatable(0f) }
 
+    val currentIsLoggedIn by rememberUpdatedState(isLoggedIn)
+    val currentIsProfileComplete by rememberUpdatedState(isProfileComplete)
+
     LaunchedEffect(Unit) {
         scale.animateTo(1f, animationSpec = tween(1000, easing = EaseOutBack))
         alpha.animateTo(1f, animationSpec = tween(800))
         delay(1500)
-        if (!isLoggedIn) {
+        if (!currentIsLoggedIn) {
             onNavigateToLogin()
-        } else if (!isProfileComplete) {
+        } else if (!currentIsProfileComplete) {
             onNavigateToUserInfo()
         } else {
             onNavigateToDashboard()
@@ -81,7 +84,7 @@ fun SplashScreenContent(
         ) {
             // Modern App Logo centered with shadow/rounded clip
             Image(
-                painter = painterResource(id = R.drawable.logo),
+                painter = painterResource(id = R.drawable.logo1),
                 contentDescription = "FitTrack Logo",
                 modifier = Modifier
                     .size(140.dp)

@@ -40,7 +40,7 @@ fun DayDetailScreen(
         dayNumber = dayNumber,
         day = selectedDay,
         onBack = onBack,
-        onStartWorkout = onStartWorkout,
+        onMarkComplete = { viewModel.markDayCompleted(dayNumber) },
         onEditPlan = onEditPlan
     )
 }
@@ -51,7 +51,7 @@ fun DayDetailScreenContent(
     dayNumber: Int,
     day: DietDay?,
     onBack: () -> Unit,
-    onStartWorkout: () -> Unit,
+    onMarkComplete: () -> Unit,
     onEditPlan: () -> Unit
 ) {
     val scrollState = rememberScrollState()
@@ -146,9 +146,9 @@ fun DayDetailScreenContent(
                     
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Start Workout Button
+                    // Mark as Complete Button
                     Button(
-                        onClick = onStartWorkout,
+                        onClick = onMarkComplete,
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
@@ -158,12 +158,12 @@ fun DayDetailScreenContent(
                         )
                     ) {
                         Icon(
-                            imageVector = if (d.isCompleted) Icons.Default.Check else Icons.Default.PlayArrow,
+                            imageVector = Icons.Default.Check,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = if (d.isCompleted) "Workout Completed" else "Start Workout",
+                            text = if (d.isCompleted) "Mark as Incomplete" else "Mark as Completed",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -250,7 +250,7 @@ fun DayDetailScreenPreview() {
                 isCompleted = false
             ),
             onBack = {},
-            onStartWorkout = {},
+            onMarkComplete = {},
             onEditPlan = {}
         )
     }

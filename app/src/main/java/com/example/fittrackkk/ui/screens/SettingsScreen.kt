@@ -44,6 +44,7 @@ fun SettingsScreen(
     onLoggedOut: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val authState by authViewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(uiState.message) {
@@ -55,6 +56,7 @@ fun SettingsScreen(
 
     LaunchedEffect(uiState.deleteAccountSuccess) {
         if (uiState.deleteAccountSuccess) {
+            authViewModel.resetState()
             onLoggedOut()
         }
     }
@@ -62,6 +64,12 @@ fun SettingsScreen(
     LaunchedEffect(uiState.deleteAccountError) {
         uiState.deleteAccountError?.let {
             Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    LaunchedEffect(authState.isLoggedIn) {
+        if (!authState.isLoggedIn) {
+            onLoggedOut()
         }
     }
 
@@ -76,7 +84,6 @@ fun SettingsScreen(
         onDeleteAccount = { viewModel.deleteAccount() },
         onSignOut = {
             authViewModel.signOut()
-            onLoggedOut()
         }
     )
 }
@@ -329,11 +336,6 @@ fun SettingsScreenContent(
                         uiState.profile?.email?.let { email ->
                             if (email.isNotBlank()) {
                                 ProfileDetailRow("Email", email)
-                            }
-                        }
-                        uiState.authEmail?.let { email ->
-                            if (email.isNotBlank()) {
-                                ProfileDetailRow("Firebase Auth Email", email)
                             }
                         }
                     }

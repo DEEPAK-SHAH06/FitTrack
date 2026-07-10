@@ -87,7 +87,7 @@ fun LoginScreenContent(
             
             // Header with App Logo
             Image(
-                painter = painterResource(id = R.drawable.logo),
+                painter = painterResource(id = R.drawable.logo1),
                 contentDescription = "FitTrack Logo",
                 modifier = Modifier
                     .size(100.dp)

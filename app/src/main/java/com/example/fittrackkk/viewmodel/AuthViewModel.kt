@@ -106,5 +106,9 @@ class AuthViewModel @JvmOverloads constructor(application: Application, private 
         _uiState.value = _uiState.value.copy(isSignUpSuccess = false)
     }
 
+    fun resetState() {
+        _uiState.value = AuthUiState(isLoggedIn = false)
+    }
+
     fun getCurrentUserEmail(): String? = actualUserRepository.currentUser?.email
 }
