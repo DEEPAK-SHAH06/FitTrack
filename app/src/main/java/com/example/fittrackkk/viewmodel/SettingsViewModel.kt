@@ -24,7 +24,11 @@ data class SettingsUiState(
     val editAge: String = "",
     val editGender: String = "",
     val message: String? = null,
-    val selectedTab: Int = 0
+    val selectedTab: Int = 0,
+    val authEmail: String? = null,
+    val isDeletingAccount: Boolean = false,
+    val deleteAccountSuccess: Boolean = false,
+    val deleteAccountError: String? = null
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -48,6 +52,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                 _uiState.value = _uiState.value.copy(isDarkMode = isDark)
             }
         }
+        // Expose Firebase user email
+        _uiState.value = _uiState.value.copy(authEmail = userRepository.currentUser?.email)
     }
 
     fun setSelectedTab(index: Int) {
@@ -107,6 +113,21 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             dietRepository.resetAllProgress()
             exerciseRepository.resetAllProgress()
             _uiState.value = _uiState.value.copy(message = "All progress has been reset!")
+        }
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isDeletingAccount = true, deleteAccountError = null)
+            val result = userRepository.deleteAccount(db)
+            if (result.isSuccess) {
+                _uiState.value = _uiState.value.copy(isDeletingAccount = false, deleteAccountSuccess = true)
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isDeletingAccount = false,
+                    deleteAccountError = result.exceptionOrNull()?.message ?: "Failed to delete account"
+                )
+            }
         }
     }
 

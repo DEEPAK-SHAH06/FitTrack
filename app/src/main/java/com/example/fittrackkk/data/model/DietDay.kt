@@ -1,8 +1,10 @@
 package com.example.fittrackkk.data.model
 
+import androidx.compose.runtime.Stable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+@Stable
 @Entity(tableName = "diet_day")
 data class DietDay(
     @PrimaryKey

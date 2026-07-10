@@ -111,7 +111,7 @@ fun PlanScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(exerciseDays) { day ->
+                items(exerciseDays, key = { it.dayNumber }) { day ->
                     ExerciseDayCard(
                         day = day,
                         onClick = { onNavigateToSession(day.dayNumber) },

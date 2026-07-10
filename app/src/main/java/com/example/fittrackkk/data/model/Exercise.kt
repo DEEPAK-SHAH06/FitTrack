@@ -1,9 +1,12 @@
 package com.example.fittrackkk.data.model
 
+import androidx.compose.runtime.Stable
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "exercise")
+@Stable
+@Entity(tableName = "exercise", indices = [Index(value = ["category"])])
 data class Exercise(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,

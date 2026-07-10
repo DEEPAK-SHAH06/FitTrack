@@ -53,7 +53,7 @@ fun MyMealsScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(meals) { meal ->
+                items(meals, key = { it.id }) { meal ->
                     MealItem(
                         meal = meal,
                         onEdit = { mealToEdit = meal },

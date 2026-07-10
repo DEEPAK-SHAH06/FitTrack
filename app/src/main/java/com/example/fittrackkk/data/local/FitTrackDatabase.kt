@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
         CustomMeal::class,
         CustomExercise::class
     ],
-    version = 4,
+    version = 6,
     exportSchema = false
 )
 abstract class FitTrackDatabase : RoomDatabase() {
@@ -75,6 +75,8 @@ abstract class FitTrackDatabase : RoomDatabase() {
             db.recipeDao().insertAllRecipes(SeedData.getRecipes())
             // Populate health articles
             db.healthArticleDao().insertAllArticles(SeedData.getHealthArticles())
+            // Populate Nepali foods
+            db.customMealDao().insertAllCustomMeals(SeedData.getNepaliFoods())
         }
     }
 }

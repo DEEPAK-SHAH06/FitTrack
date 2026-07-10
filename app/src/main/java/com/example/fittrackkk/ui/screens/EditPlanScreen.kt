@@ -81,13 +81,13 @@ fun EditPlanScreen(
                 }
             }
 
-            items(dayExercises) { exercise ->
+            items(dayExercises, key = { it.id }) { exercise ->
                 PlanExerciseItem(exercise.name, "${exercise.durationSeconds / 60} mins") {
                     exerciseViewModel.removeExerciseFromDay(dayNumber, exercise.id, false)
                 }
             }
 
-            items(dayCustomExercises) { exercise ->
+            items(dayCustomExercises, key = { it.id }) { exercise ->
                 PlanExerciseItem(exercise.name, "${exercise.durationMinutes} mins") {
                     exerciseViewModel.removeExerciseFromDay(dayNumber, exercise.id, true)
                 }
@@ -179,7 +179,7 @@ fun MealSelectionDialog(
                 
                 if (customMeals.isNotEmpty()) {
                     item { Text("My Custom Meals", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(vertical = 8.dp)) }
-                    items(customMeals) { meal ->
+                    items(customMeals, key = { it.id }) { meal ->
                         TextButton(onClick = { onSelect(meal.name, meal.calories, meal.id) }, modifier = Modifier.fillMaxWidth()) {
                             Text("${meal.name} (${meal.calories} kcal)")
                         }
@@ -188,7 +188,7 @@ fun MealSelectionDialog(
 
                 if (recipes.isNotEmpty()) {
                     item { Text("Nepalese Recipes", style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(vertical = 8.dp)) }
-                    items(recipes) { recipe ->
+                    items(recipes, key = { it.id }) { recipe ->
                         TextButton(onClick = { onSelect(recipe.title, recipe.calories, null) }, modifier = Modifier.fillMaxWidth()) {
                             Text("${recipe.title} (${recipe.calories} kcal)")
                         }
@@ -216,14 +216,14 @@ fun ExerciseSelectionDialog(
         text = {
             LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
                 item { Text("Custom Exercises", style = MaterialTheme.typography.labelLarge) }
-                items(customExercises) { ex ->
+                items(customExercises, key = { it.id }) { ex ->
                     TextButton(onClick = { onSelect(ex.id, true) }, modifier = Modifier.fillMaxWidth()) {
                         Text(ex.name)
                     }
                 }
                 item { Divider(modifier = Modifier.padding(vertical = 8.dp)) }
                 item { Text("Default Exercises", style = MaterialTheme.typography.labelLarge) }
-                items(defaultExercises) { ex ->
+                items(defaultExercises, key = { it.id }) { ex ->
                     TextButton(onClick = { onSelect(ex.id, false) }, modifier = Modifier.fillMaxWidth()) {
                         Text(ex.name)
                     }

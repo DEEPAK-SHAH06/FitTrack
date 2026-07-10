@@ -19,6 +19,7 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
             discoverRepository.getAllRecipes().first().let { recipes ->
                 if (recipes.isEmpty()) {
                     val seedRecipes = com.example.fittrackkk.data.local.SeedData.getRecipes()
+                    // Insert seed recipes without setting isUserCreated (it defaults to false)
                     seedRecipes.forEach { discoverRepository.insertRecipe(it) }
                 }
             }
@@ -34,6 +35,9 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
     val recipes: StateFlow<List<Recipe>> = discoverRepository.getAllRecipes()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val userCreatedRecipes: StateFlow<List<Recipe>> = discoverRepository.getUserCreatedRecipes()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val articles: StateFlow<List<HealthArticle>> = discoverRepository.getAllArticles()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -46,6 +50,46 @@ class DiscoverViewModel(application: Application) : AndroidViewModel(application
     fun loadRecipe(id: Int) {
         viewModelScope.launch {
             discoverRepository.getRecipeById(id).collect { _selectedRecipe.value = it }
+        }
+    }
+
+    suspend fun getRecipeByIdOnce(id: Int): Recipe? {
+        return discoverRepository.getRecipeByIdOnce(id)
+    }
+
+    fun addRecipe(
+        title: String,
+        category: String,
+        ingredients: String,
+        steps: String,
+        calories: Int,
+        prepTimeMinutes: Int,
+        imageUrl: String
+    ) {
+        viewModelScope.launch {
+            val newRecipe = Recipe(
+                title = title,
+                category = category,
+                ingredients = ingredients,
+                steps = steps,
+                calories = calories,
+                prepTimeMinutes = prepTimeMinutes,
+                imageUrl = imageUrl,
+                isUserCreated = true
+            )
+            discoverRepository.insertRecipe(newRecipe)
+        }
+    }
+
+    fun updateRecipe(recipe: Recipe) {
+        viewModelScope.launch {
+            discoverRepository.updateRecipe(recipe)
+        }
+    }
+
+    fun deleteRecipe(recipe: Recipe) {
+        viewModelScope.launch {
+            discoverRepository.deleteRecipe(recipe)
         }
     }
 

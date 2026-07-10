@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Book
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
@@ -18,12 +18,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fittrackkk.data.model.HealthArticle
 import com.example.fittrackkk.data.model.Recipe
+import com.example.fittrackkk.ui.theme.FitTrackkkTheme
 import com.example.fittrackkk.ui.theme.TextSecondaryLight
 import com.example.fittrackkk.viewmodel.DiscoverViewModel
 
@@ -32,13 +36,33 @@ fun DiscoverScreen(
     viewModel: DiscoverViewModel,
     initialTab: Int = 0,
     onNavigateToRecipe: (Int) -> Unit,
-    onNavigateToArticle: (Int) -> Unit
+    onNavigateToArticle: (Int) -> Unit,
+    onAddRecipeClick: () -> Unit = {}
+) {
+    val recipes by viewModel.recipes.collectAsState()
+    val articles by viewModel.articles.collectAsState()
+
+    DiscoverScreenContent(
+        recipes = recipes,
+        articles = articles,
+        initialTab = initialTab,
+        onNavigateToRecipe = onNavigateToRecipe,
+        onNavigateToArticle = onNavigateToArticle,
+        onAddRecipeClick = onAddRecipeClick
+    )
+}
+
+@Composable
+fun DiscoverScreenContent(
+    recipes: List<Recipe>,
+    articles: List<HealthArticle>,
+    initialTab: Int = 0,
+    onNavigateToRecipe: (Int) -> Unit,
+    onNavigateToArticle: (Int) -> Unit,
+    onAddRecipeClick: () -> Unit
 ) {
     var selectedTab by remember(initialTab) { mutableStateOf(initialTab) }
     val tabs = listOf("Recipes", "Health Info")
-
-    val recipes by viewModel.recipes.collectAsState()
-    val articles by viewModel.articles.collectAsState()
 
     Column(
         modifier = Modifier
@@ -65,22 +89,36 @@ fun DiscoverScreen(
                 .padding(16.dp)
         ) {
             if (selectedTab == 0) {
-                // Recipes list grid
+                // Recipes list grid with optimized stable keys
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    items(recipes) { recipe ->
+                    items(recipes, key = { it.id }) { recipe ->
                         RecipeGridItem(recipe = recipe, onClick = { onNavigateToRecipe(recipe.id) })
                     }
                 }
-            } else {
-                // Articles list
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+
+                // FAB to Create Recipe
+                FloatingActionButton(
+                    onClick = onAddRecipeClick,
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
                 ) {
-                    items(articles) { article ->
+                    Icon(Icons.Default.Add, contentDescription = "Add Recipe")
+                }
+            } else {
+                // Articles list with optimized stable keys
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(articles, key = { it.id }) { article ->
                         ArticleListItem(article = article, onClick = { onNavigateToArticle(article.id) })
                     }
                 }
@@ -100,20 +138,32 @@ fun RecipeGridItem(recipe: Recipe, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column {
-            // Food visual indicator
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(110.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Restaurant,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(36.dp)
+            // Coil AsyncImage loading with backup placeholder icon
+            if (recipe.imageUrl.isNotBlank()) {
+                AsyncImage(
+                    model = recipe.imageUrl,
+                    contentDescription = recipe.title,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
                 )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(110.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Restaurant,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
             }
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
@@ -202,5 +252,25 @@ fun ArticleListItem(article: HealthArticle, onClick: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DiscoverScreenPreview() {
+    FitTrackkkTheme {
+        DiscoverScreenContent(
+            recipes = listOf(
+                Recipe(1, "Authentic Dal Bhat", "Lunch", calories = 650, isUserCreated = false),
+                Recipe(2, "Chicken Momo", "Dinner", calories = 550, isUserCreated = true)
+            ),
+            articles = listOf(
+                HealthArticle(1, "Nutritional Benefits of Dal Bhat", "Content details", category = "Nutrition")
+            ),
+            initialTab = 0,
+            onNavigateToRecipe = {},
+            onNavigateToArticle = {},
+            onAddRecipeClick = {}
+        )
     }
 }

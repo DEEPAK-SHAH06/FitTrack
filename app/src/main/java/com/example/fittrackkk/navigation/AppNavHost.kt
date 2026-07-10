@@ -150,7 +150,10 @@ fun AppNavHost(
             RecipeDetailScreen(
                 recipeId = recipeId,
                 viewModel = discoverViewModel,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onEditRecipe = { id ->
+                    navController.navigate(Screen.EditRecipe.createRoute(id))
+                }
             )
         }
 
@@ -189,6 +192,26 @@ fun AppNavHost(
                 dayNumber = dayNumber,
                 dietViewModel = dietViewModel,
                 exerciseViewModel = exerciseViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.AddRecipe.route) {
+            AddEditRecipeScreen(
+                recipeId = null,
+                viewModel = discoverViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.EditRecipe.route,
+            arguments = listOf(navArgument("recipeId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val recipeId = backStackEntry.arguments?.getInt("recipeId") ?: 1
+            AddEditRecipeScreen(
+                recipeId = recipeId,
+                viewModel = discoverViewModel,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

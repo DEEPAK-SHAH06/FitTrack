@@ -3,29 +3,25 @@ package com.example.fittrackkk.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fittrackkk.data.model.DietDay
 import com.example.fittrackkk.ui.theme.*
 import com.example.fittrackkk.viewmodel.DietViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DayDetailScreen(
     dayNumber: Int,
@@ -35,11 +31,30 @@ fun DayDetailScreen(
     onEditPlan: () -> Unit
 ) {
     val selectedDay by viewModel.selectedDay.collectAsState()
-    val scrollState = rememberScrollState()
 
     LaunchedEffect(dayNumber) {
         viewModel.loadDay(dayNumber)
     }
+
+    DayDetailScreenContent(
+        dayNumber = dayNumber,
+        day = selectedDay,
+        onBack = onBack,
+        onStartWorkout = onStartWorkout,
+        onEditPlan = onEditPlan
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DayDetailScreenContent(
+    dayNumber: Int,
+    day: DietDay?,
+    onBack: () -> Unit,
+    onStartWorkout: () -> Unit,
+    onEditPlan: () -> Unit
+) {
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -67,7 +82,7 @@ fun DayDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            selectedDay?.let { day ->
+            day?.let { d ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -79,7 +94,7 @@ fun DayDetailScreen(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
                         shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (day.isCompleted) CardCompleted else MaterialTheme.colorScheme.surfaceVariant
+                            containerColor = if (d.isCompleted) CardCompleted else MaterialTheme.colorScheme.surfaceVariant
                         )
                     ) {
                         Row(
@@ -100,11 +115,11 @@ fun DayDetailScreen(
                                     color = TextSecondaryLight
                                 )
                                 Text(
-                                    text = "${day.totalCalories} Kcal",
+                                    text = "${d.totalCalories} Kcal",
                                     style = MaterialTheme.typography.headlineMedium,
                                     fontWeight = FontWeight.Bold
                                 )
-                                if (day.isCompleted) {
+                                if (d.isCompleted) {
                                     Text(
                                         text = "Day completed! Great job!",
                                         style = MaterialTheme.typography.bodySmall,
@@ -124,14 +139,14 @@ fun DayDetailScreen(
                     )
 
                     // Meal items
-                    MealItemCard("Breakfast", day.breakfast, day.breakfastCalories)
-                    MealItemCard("Lunch", day.lunch, day.lunchCalories)
-                    MealItemCard("Afternoon Snack", day.afternoonSnack, day.afternoonSnackCalories)
-                    MealItemCard("Dinner", day.dinner, day.dinnerCalories)
+                    MealItemCard("Breakfast", d.breakfast, d.breakfastCalories)
+                    MealItemCard("Lunch", d.lunch, d.lunchCalories)
+                    MealItemCard("Afternoon Snack", d.afternoonSnack, d.afternoonSnackCalories)
+                    MealItemCard("Dinner", d.dinner, d.dinnerCalories)
                     
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Start Workout Button (Replacing the FAB)
+                    // Start Workout Button
                     Button(
                         onClick = onStartWorkout,
                         modifier = Modifier
@@ -139,16 +154,16 @@ fun DayDetailScreen(
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (day.isCompleted) SuccessGreen else MaterialTheme.colorScheme.primary
+                            containerColor = if (d.isCompleted) SuccessGreen else MaterialTheme.colorScheme.primary
                         )
                     ) {
                         Icon(
-                            imageVector = if (day.isCompleted) Icons.Default.Check else Icons.Default.PlayArrow,
+                            imageVector = if (d.isCompleted) Icons.Default.Check else Icons.Default.PlayArrow,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = if (day.isCompleted) "Workout Completed" else "Start Workout",
+                            text = if (d.isCompleted) "Workout Completed" else "Start Workout",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -213,5 +228,30 @@ fun MealItemCard(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DayDetailScreenPreview() {
+    FitTrackkkTheme {
+        DayDetailScreenContent(
+            dayNumber = 3,
+            day = DietDay(
+                dayNumber = 3,
+                breakfast = "Sel Roti with Aloo Dum",
+                breakfastCalories = 450,
+                lunch = "Dal Bhat",
+                lunchCalories = 600,
+                afternoonSnack = "Bhatmas",
+                afternoonSnackCalories = 150,
+                dinner = "Veg Soup",
+                dinnerCalories = 300,
+                isCompleted = false
+            ),
+            onBack = {},
+            onStartWorkout = {},
+            onEditPlan = {}
+        )
     }
 }

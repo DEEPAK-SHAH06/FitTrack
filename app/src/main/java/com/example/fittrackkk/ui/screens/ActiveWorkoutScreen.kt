@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,10 +26,10 @@ import com.example.fittrackkk.data.model.Exercise
 import com.example.fittrackkk.ui.theme.GradientStart
 import com.example.fittrackkk.ui.theme.SuccessGreen
 import com.example.fittrackkk.ui.theme.TextSecondaryLight
+import com.example.fittrackkk.ui.theme.FitTrackkkTheme
 import com.example.fittrackkk.viewmodel.ExerciseViewModel
 import kotlinx.coroutines.delay
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ActiveWorkoutScreen(
     dayNumber: Int,
@@ -36,14 +37,33 @@ fun ActiveWorkoutScreen(
     onBack: () -> Unit
 ) {
     val exercises by viewModel.selectedDayExercises.collectAsState()
-    var currentIndex by remember { mutableStateOf(0) }
-    var timeLeft by remember { mutableStateOf(0) }
-    var isPaused by remember { mutableStateOf(false) }
-    var workoutFinished by remember { mutableStateOf(false) }
 
     LaunchedEffect(dayNumber) {
         viewModel.loadDayExercises(dayNumber)
     }
+
+    ActiveWorkoutScreenContent(
+        dayNumber = dayNumber,
+        exercises = exercises,
+        onBack = onBack,
+        onWorkoutCompleted = {
+            viewModel.completeWorkout(dayNumber)
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ActiveWorkoutScreenContent(
+    dayNumber: Int,
+    exercises: List<Exercise>,
+    onBack: () -> Unit,
+    onWorkoutCompleted: () -> Unit
+) {
+    var currentIndex by remember { mutableStateOf(0) }
+    var timeLeft by remember { mutableStateOf(0) }
+    var isPaused by remember { mutableStateOf(false) }
+    var workoutFinished by remember { mutableStateOf(false) }
 
     // Initialize timer for current exercise
     LaunchedEffect(exercises, currentIndex) {
@@ -59,12 +79,10 @@ fun ActiveWorkoutScreen(
             delay(1000)
             timeLeft -= 1
             if (timeLeft == 0) {
-                // Time is up, move to next exercise
                 if (currentIndex + 1 < exercises.size) {
                     currentIndex += 1
                 } else {
-                    // All exercises completed
-                    viewModel.completeWorkout(dayNumber)
+                    onWorkoutCompleted()
                     workoutFinished = true
                 }
             }
@@ -97,7 +115,6 @@ fun ActiveWorkoutScreen(
                     CircularProgressIndicator()
                 }
             } else if (workoutFinished) {
-                // Workout Finished Screen
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -122,8 +139,7 @@ fun ActiveWorkoutScreen(
                         text = "Great job finishing Day $dayNumber exercises!",
                         style = MaterialTheme.typography.bodyLarge,
                         color = TextSecondaryLight,
-                        modifier = Modifier.padding(horizontal = 24.dp),
-                        onTextLayout = {}
+                        modifier = Modifier.padding(horizontal = 24.dp)
                     )
                     Spacer(modifier = Modifier.height(40.dp))
                     Button(
@@ -137,7 +153,6 @@ fun ActiveWorkoutScreen(
                     }
                 }
             } else {
-                // Active Workout Player
                 val currentExercise = exercises[currentIndex]
                 val progress = (currentIndex + 1).toFloat() / exercises.size
 
@@ -147,7 +162,6 @@ fun ActiveWorkoutScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Full width top Progress Bar
                     LinearProgressIndicator(
                         progress = { progress },
                         modifier = Modifier
@@ -165,7 +179,6 @@ fun ActiveWorkoutScreen(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
 
-                    // Visual Area Placeholder Card
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -200,7 +213,6 @@ fun ActiveWorkoutScreen(
                         }
                     }
 
-                    // Exercise Title
                     Text(
                         text = currentExercise.name,
                         style = MaterialTheme.typography.headlineMedium,
@@ -214,7 +226,6 @@ fun ActiveWorkoutScreen(
                         modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 24.dp)
                     )
 
-                    // Countdown Timer Formatted (MM:SS)
                     val minutes = timeLeft / 60
                     val seconds = timeLeft % 60
                     val timeString = String.format("%02d:%02d", minutes, seconds)
@@ -227,7 +238,6 @@ fun ActiveWorkoutScreen(
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    // Control Actions Row
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -235,7 +245,6 @@ fun ActiveWorkoutScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Previous Button
                         TextButton(
                             onClick = {
                                 if (currentIndex > 0) {
@@ -252,7 +261,6 @@ fun ActiveWorkoutScreen(
                             )
                         }
 
-                        // Play/Pause Button
                         Button(
                             onClick = { isPaused = !isPaused },
                             modifier = Modifier
@@ -275,13 +283,12 @@ fun ActiveWorkoutScreen(
                             )
                         }
 
-                        // Skip Button
                         TextButton(
                             onClick = {
                                 if (currentIndex + 1 < exercises.size) {
                                     currentIndex += 1
                                 } else {
-                                    viewModel.completeWorkout(dayNumber)
+                                    onWorkoutCompleted()
                                     workoutFinished = true
                                 }
                             }
@@ -295,7 +302,6 @@ fun ActiveWorkoutScreen(
                         }
                     }
 
-                    // Exercise List for Today
                     Text(
                         text = "Workout Plan",
                         style = MaterialTheme.typography.titleMedium,
@@ -309,7 +315,7 @@ fun ActiveWorkoutScreen(
                             .weight(0.5f)
                             .padding(bottom = 8.dp)
                     ) {
-                        itemsIndexed(exercises) { index, exercise ->
+                        itemsIndexed(exercises, key = { index, item -> "${item.id}_$index" }) { index, exercise ->
                             ExerciseSummaryRow(
                                 exercise = exercise,
                                 isCurrent = index == currentIndex,
@@ -371,6 +377,23 @@ fun ExerciseSummaryRow(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal,
             color = if (isCurrent) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ActiveWorkoutScreenPreview() {
+    FitTrackkkTheme {
+        ActiveWorkoutScreenContent(
+            dayNumber = 5,
+            exercises = listOf(
+                Exercise(1, "Jumping Jacks", "Warum up", durationSeconds = 60),
+                Exercise(2, "Push-ups", "Chest", durationSeconds = 90),
+                Exercise(3, "Squats", "Legs", durationSeconds = 90)
+            ),
+            onBack = {},
+            onWorkoutCompleted = {}
         )
     }
 }

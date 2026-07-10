@@ -113,4 +113,26 @@ object SeedData {
         HealthArticle(19, "Building a Home Workout Routine", "You don't need a gym to get fit. Bodyweight exercises like push-ups, squats, and lunges are highly effective. Create a dedicated workout space at home. Follow a structured program rather than random exercises. Use household items as weights. Set a consistent schedule. Online fitness communities can provide motivation and accountability.", 3f, "Fitness"),
         HealthArticle(20, "The Power of Consistency", "Consistency trumps intensity in fitness. Showing up regularly, even for shorter workouts, builds lasting habits. Aim for progress, not perfection. Track your workouts to see improvement over time. Make exercise a non-negotiable part of your day. Start with just 15-20 minutes if time is limited. Remember that rest days are part of consistency too.", 2.5f, "Motivation"),
     )
+
+    fun getNepaliFoods(): List<CustomMeal> = listOf(
+        CustomMeal(name = "Sel Roti", category = "Breakfast", calories = 350, description = "Traditional ring-shaped sweet rice bread"),
+        CustomMeal(name = "Chiura Dahi", category = "Breakfast", calories = 300, description = "Beaten rice with sweet curd"),
+        CustomMeal(name = "Aalu Tarkari with Roti", category = "Breakfast", calories = 400, description = "Spiced potato curry served with soft flatbread"),
+        CustomMeal(name = "Gundruk Soup", category = "Breakfast", calories = 150, description = "Tangy fermented leafy green vegetable soup"),
+
+        CustomMeal(name = "Dal Bhat Tarkari", category = "Lunch", calories = 650, description = "Steamed rice, lentil soup, and seasonal vegetable curry"),
+        CustomMeal(name = "Dhido with Gundruk", category = "Lunch", calories = 550, description = "Traditional thick porridge served with fermented leafy greens"),
+        CustomMeal(name = "Chicken Dal Bhat", category = "Lunch", calories = 750, description = "Steamed rice and lentil soup served with spiced chicken curry"),
+        CustomMeal(name = "Mutton Khana Set", category = "Lunch", calories = 850, description = "Steamed rice and lentil soup served with spiced mutton curry and sides"),
+
+        CustomMeal(name = "Chatpate", category = "Snack", calories = 250, description = "Spicy and tangy Nepalese street snack made of puffed rice"),
+        CustomMeal(name = "Mo:Mo", category = "Snack", calories = 450, description = "Steamed dumplings filled with minced meat or vegetables"),
+        CustomMeal(name = "Wai Wai Sadeko", category = "Snack", calories = 300, description = "Spiced instant noodle salad with onions and tomatoes"),
+        CustomMeal(name = "Bhatmas Sadeko", category = "Snack", calories = 200, description = "Roasted soybeans spiced with onions, ginger, garlic, and lime"),
+
+        CustomMeal(name = "Veg Thukpa", category = "Dinner", calories = 400, description = "Nepalese style noodle soup with mixed vegetables"),
+        CustomMeal(name = "Chicken Thukpa", category = "Dinner", calories = 500, description = "Nepalese style noodle soup with chicken and spices"),
+        CustomMeal(name = "Roti Tarkari", category = "Dinner", calories = 420, description = "Soft flatbread served with mixed vegetable curry"),
+        CustomMeal(name = "Khichadi", category = "Dinner", calories = 450, description = "Comforting one-pot dish of rice and lentils cooked with spices")
+    )
 }

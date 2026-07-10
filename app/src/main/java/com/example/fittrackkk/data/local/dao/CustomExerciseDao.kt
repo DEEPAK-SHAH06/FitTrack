@@ -15,9 +15,15 @@ interface CustomExerciseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCustomExercise(exercise: CustomExercise)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllCustomExercises(exercises: List<CustomExercise>)
+
     @Update
     suspend fun updateCustomExercise(exercise: CustomExercise)
 
     @Delete
     suspend fun deleteCustomExercise(exercise: CustomExercise)
+
+    @Query("DELETE FROM custom_exercises")
+    suspend fun deleteAllCustomExercises()
 }

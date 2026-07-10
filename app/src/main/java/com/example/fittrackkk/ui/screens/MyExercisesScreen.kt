@@ -53,7 +53,7 @@ fun MyExercisesScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(exercises) { exercise ->
+                items(exercises, key = { it.id }) { exercise ->
                     ExerciseItem(
                         exercise = exercise,
                         onEdit = { exerciseToEdit = exercise },

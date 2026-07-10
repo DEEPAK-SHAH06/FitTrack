@@ -37,6 +37,25 @@ fun DietScreen(
     val dietDays by viewModel.dietDays.collectAsState()
     val completedCount by viewModel.completedDaysCount.collectAsState()
 
+    DietScreenContent(
+        dietDays = dietDays,
+        completedCount = completedCount,
+        onNavigateToDetail = onNavigateToDetail,
+        onNavigateToEdit = onNavigateToEdit,
+        onNavigateToCustom = onNavigateToCustom,
+        onCompleteToggle = { dayNumber -> viewModel.markDayCompleted(dayNumber) }
+    )
+}
+
+@Composable
+fun DietScreenContent(
+    dietDays: List<DietDay>,
+    completedCount: Int,
+    onNavigateToDetail: (Int) -> Unit,
+    onNavigateToEdit: (Int) -> Unit,
+    onNavigateToCustom: () -> Unit,
+    onCompleteToggle: (Int) -> Unit
+) {
     Scaffold(
         floatingActionButton = {
             ExtendedFloatingActionButton(
@@ -103,7 +122,7 @@ fun DietScreen(
                 }
             }
 
-            // Grid of 30 days
+            // Grid of 30 days with optimized stable key
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
                 contentPadding = PaddingValues(16.dp),
@@ -111,12 +130,12 @@ fun DietScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(dietDays) { day ->
+                items(dietDays, key = { it.dayNumber }) { day ->
                     DietDayCard(
                         day = day,
                         onClick = { onNavigateToDetail(day.dayNumber) },
                         onEditClick = { onNavigateToEdit(day.dayNumber) },
-                        onCompleteToggle = { viewModel.markDayCompleted(day.dayNumber) }
+                        onCompleteToggle = { onCompleteToggle(day.dayNumber) }
                     )
                 }
             }
@@ -169,7 +188,6 @@ fun DietDayCard(
                 )
             }
 
-            // Top Row for Check indicator and Edit button
             Row(
                 modifier = Modifier.fillMaxWidth().align(Alignment.TopEnd),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -207,5 +225,24 @@ fun DietDayCard(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DietScreenPreview() {
+    FitTrackkkTheme {
+        DietScreenContent(
+            dietDays = listOf(
+                DietDay(1, "Oatmeal", 350, isCompleted = true),
+                DietDay(2, "Dal Bhat", 600, isCompleted = false),
+                DietDay(3, "Momo", 450, isCompleted = false)
+            ),
+            completedCount = 1,
+            onNavigateToDetail = {},
+            onNavigateToEdit = {},
+            onNavigateToCustom = {},
+            onCompleteToggle = {}
+        )
     }
 }

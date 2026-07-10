@@ -111,10 +111,10 @@ fun ExerciseSessionScreen(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        items(selectedDayExercises) { exercise ->
+                        items(selectedDayExercises, key = { it.id }) { exercise ->
                             ExerciseListItem(exercise = exercise)
                         }
-                        items(selectedDayCustomExercises) { exercise ->
+                        items(selectedDayCustomExercises, key = { it.id }) { exercise ->
                             CustomExerciseListItem(exercise = exercise)
                         }
                         item {

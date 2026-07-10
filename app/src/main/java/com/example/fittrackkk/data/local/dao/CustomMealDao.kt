@@ -15,9 +15,15 @@ interface CustomMealDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCustomMeal(meal: CustomMeal)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllCustomMeals(meals: List<CustomMeal>)
+
     @Update
     suspend fun updateCustomMeal(meal: CustomMeal)
 
     @Delete
     suspend fun deleteCustomMeal(meal: CustomMeal)
+
+    @Query("DELETE FROM custom_meals")
+    suspend fun deleteAllCustomMeals()
 }

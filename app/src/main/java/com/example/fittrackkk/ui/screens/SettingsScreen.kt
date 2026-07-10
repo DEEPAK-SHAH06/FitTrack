@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,17 +28,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fittrackkk.data.model.UserProfile
-import com.example.fittrackkk.ui.theme.ErrorRed
-import com.example.fittrackkk.ui.theme.GradientStart
-import com.example.fittrackkk.ui.theme.TextSecondaryLight
+import com.example.fittrackkk.ui.theme.*
 import com.example.fittrackkk.viewmodel.AuthViewModel
 import com.example.fittrackkk.viewmodel.SettingsUiState
 import com.example.fittrackkk.viewmodel.SettingsViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel,
@@ -45,7 +44,6 @@ fun SettingsScreen(
     onLoggedOut: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val scrollState = rememberScrollState()
     val context = LocalContext.current
 
     LaunchedEffect(uiState.message) {
@@ -53,6 +51,80 @@ fun SettingsScreen(
             Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
             viewModel.clearMessage()
         }
+    }
+
+    LaunchedEffect(uiState.deleteAccountSuccess) {
+        if (uiState.deleteAccountSuccess) {
+            onLoggedOut()
+        }
+    }
+
+    LaunchedEffect(uiState.deleteAccountError) {
+        uiState.deleteAccountError?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    SettingsScreenContent(
+        uiState = uiState,
+        onStartEditing = { viewModel.startEditing() },
+        onCancelEditing = { viewModel.cancelEditing() },
+        onUpdateEditField = { field, value -> viewModel.updateEditField(field, value) },
+        onSaveProfile = { viewModel.saveProfile() },
+        onToggleDarkMode = { viewModel.toggleDarkMode() },
+        onRestartProgress = { viewModel.restartProgress() },
+        onDeleteAccount = { viewModel.deleteAccount() },
+        onSignOut = {
+            authViewModel.signOut()
+            onLoggedOut()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreenContent(
+    uiState: SettingsUiState,
+    onStartEditing: () -> Unit,
+    onCancelEditing: () -> Unit,
+    onUpdateEditField: (String, String) -> Unit,
+    onSaveProfile: () -> Unit,
+    onToggleDarkMode: () -> Unit,
+    onRestartProgress: () -> Unit,
+    onDeleteAccount: () -> Unit,
+    onSignOut: () -> Unit
+) {
+    val scrollState = rememberScrollState()
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Warning, contentDescription = null, tint = ErrorRed)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Delete Account", fontWeight = FontWeight.Bold)
+                }
+            },
+            text = { Text("Are you sure you want to delete your account?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDeleteAccount()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = ErrorRed)
+                ) {
+                    Text("Delete", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     Scaffold(
@@ -78,7 +150,7 @@ fun SettingsScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Profile section
+                // Profile Section
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -96,15 +168,15 @@ fun SettingsScreen(
                                 Text("My Profile", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                             }
                             if (!uiState.isEditing) {
-                                IconButton(onClick = { viewModel.startEditing() }) {
+                                IconButton(onClick = onStartEditing) {
                                     Icon(Icons.Default.Edit, contentDescription = "Edit Profile", tint = MaterialTheme.colorScheme.primary)
                                 }
                             } else {
                                 Row {
-                                    TextButton(onClick = { viewModel.cancelEditing() }) {
+                                    TextButton(onClick = onCancelEditing) {
                                         Text("Cancel")
                                     }
-                                    IconButton(onClick = { viewModel.saveProfile() }) {
+                                    IconButton(onClick = onSaveProfile) {
                                         Icon(Icons.Default.Save, contentDescription = "Save Profile", tint = MaterialTheme.colorScheme.primary)
                                     }
                                 }
@@ -113,43 +185,41 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         if (uiState.isEditing) {
-                            // Edit Fields
                             OutlinedTextField(
                                 value = uiState.editHeight,
-                                onValueChange = { viewModel.updateEditField("height", it) },
+                                onValueChange = { onUpdateEditField("height", it) },
                                 label = { Text("Height (cm)") },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                             )
                             OutlinedTextField(
                                 value = uiState.editWeight,
-                                onValueChange = { viewModel.updateEditField("weight", it) },
+                                onValueChange = { onUpdateEditField("weight", it) },
                                 label = { Text("Weight (kg)") },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                             )
                             OutlinedTextField(
                                 value = uiState.editTargetWeight,
-                                onValueChange = { viewModel.updateEditField("targetWeight", it) },
+                                onValueChange = { onUpdateEditField("targetWeight", it) },
                                 label = { Text("Target Weight (kg)") },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                             )
                             OutlinedTextField(
                                 value = uiState.editAge,
-                                onValueChange = { viewModel.updateEditField("age", it) },
+                                onValueChange = { onUpdateEditField("age", it) },
                                 label = { Text("Age") },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                             )
                             OutlinedTextField(
                                 value = uiState.editGender,
-                                onValueChange = { viewModel.updateEditField("gender", it) },
+                                onValueChange = { onUpdateEditField("gender", it) },
                                 label = { Text("Gender") },
                                 modifier = Modifier.fillMaxWidth()
                             )
                         } else {
-                            // Display Fields
                             uiState.profile?.let { profile ->
                                 ProfileDetailRow("Height", "${profile.height} cm")
                                 ProfileDetailRow("Weight", "${profile.weight} kg")
@@ -175,7 +245,7 @@ fun SettingsScreen(
                     }
                 }
 
-                // App settings
+                // App Settings
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(20.dp),
@@ -184,7 +254,7 @@ fun SettingsScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text("App Settings", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 12.dp))
 
-                        // Dark Mode Row
+                        // Dark Mode
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -197,17 +267,17 @@ fun SettingsScreen(
                             }
                             Switch(
                                 checked = uiState.isDarkMode,
-                                onCheckedChange = { viewModel.toggleDarkMode() }
+                                onCheckedChange = { onToggleDarkMode() }
                             )
                         }
 
                         Divider(modifier = Modifier.padding(vertical = 12.dp))
 
-                        // Restart progress Row
+                        // Restart Progress
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { viewModel.restartProgress() }
+                                .clickable { onRestartProgress() }
                                 .padding(vertical = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -219,15 +289,59 @@ fun SettingsScreen(
                             }
                             Icon(Icons.Default.Delete, contentDescription = null, tint = ErrorRed)
                         }
+
+                        Divider(modifier = Modifier.padding(vertical = 12.dp))
+
+                        // Delete Account Option
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showDeleteDialog = true }
+                                .padding(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Delete, contentDescription = null, tint = ErrorRed)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text("Delete Account", color = ErrorRed)
+                            }
+                            Icon(Icons.Default.Warning, contentDescription = null, tint = ErrorRed)
+                        }
                     }
                 }
 
-                // Log out button
+                // Account Information
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Account Information",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        uiState.profile?.email?.let { email ->
+                            if (email.isNotBlank()) {
+                                ProfileDetailRow("Email", email)
+                            }
+                        }
+                        uiState.authEmail?.let { email ->
+                            if (email.isNotBlank()) {
+                                ProfileDetailRow("Firebase Auth Email", email)
+                            }
+                        }
+                    }
+                }
+
+                // Sign Out Button
                 Button(
-                    onClick = {
-                        authViewModel.signOut()
-                        onLoggedOut()
-                    },
+                    onClick = onSignOut,
                     colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth().height(52.dp)
@@ -236,20 +350,65 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Sign Out", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
+
+                // Loading Overlay during Account Deletion
+                if (uiState.isDeletingAccount) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = ErrorRed)
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun ProfileDetailRow(label: String, value: String) {
+fun ProfileDetailRow(
+    label: String,
+    value: String
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, color = TextSecondaryLight)
-        Text(value, fontWeight = FontWeight.Medium)
+        Text(text = label, color = TextSecondaryLight)
+        Text(text = value, fontWeight = FontWeight.Medium)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SettingsScreenPreview() {
+    FitTrackkkTheme {
+        SettingsScreenContent(
+            uiState = SettingsUiState(
+                profile = UserProfile(
+                    email = "profile@example.com",
+                    height = 175f,
+                    weight = 70f,
+                    targetWeight = 68f,
+                    age = 25,
+                    gender = "Male"
+                ),
+                isDarkMode = false,
+                isEditing = false,
+                authEmail = "auth@example.com"
+            ),
+            onStartEditing = {},
+            onCancelEditing = {},
+            onUpdateEditField = { _, _ -> },
+            onSaveProfile = {},
+            onToggleDarkMode = {},
+            onRestartProgress = {},
+            onDeleteAccount = {},
+            onSignOut = {}
+        )
     }
 }

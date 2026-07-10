@@ -7,6 +7,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Flatware
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Timer
@@ -14,9 +16,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import com.example.fittrackkk.data.model.Recipe
+import com.example.fittrackkk.ui.theme.FitTrackkkTheme
 import com.example.fittrackkk.ui.theme.GradientStart
 import com.example.fittrackkk.ui.theme.TextSecondaryLight
 import com.example.fittrackkk.ui.theme.WarningOrange
@@ -27,22 +34,53 @@ import com.example.fittrackkk.viewmodel.DiscoverViewModel
 fun RecipeDetailScreen(
     recipeId: Int,
     viewModel: DiscoverViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onEditRecipe: (Int) -> Unit
 ) {
     val selectedRecipe by viewModel.selectedRecipe.collectAsState()
-    val scrollState = rememberScrollState()
 
     LaunchedEffect(recipeId) {
         viewModel.loadRecipe(recipeId)
     }
 
+    RecipeDetailScreenContent(
+        recipe = selectedRecipe,
+        onBack = onBack,
+        onEditRecipe = onEditRecipe,
+        onDeleteRecipe = { recipe ->
+            viewModel.deleteRecipe(recipe)
+            onBack()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecipeDetailScreenContent(
+    recipe: Recipe?,
+    onBack: () -> Unit,
+    onEditRecipe: (Int) -> Unit,
+    onDeleteRecipe: (Recipe) -> Unit
+) {
+    val scrollState = rememberScrollState()
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(selectedRecipe?.title ?: "Recipe", fontWeight = FontWeight.Bold) },
+                title = { Text(recipe?.title ?: "Recipe", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (recipe?.isUserCreated == true) {
+                        IconButton(onClick = { onEditRecipe(recipe.id) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Recipe")
+                        }
+                        IconButton(onClick = { onDeleteRecipe(recipe) }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete Recipe")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -57,13 +95,41 @@ fun RecipeDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            selectedRecipe?.let { recipe ->
+            recipe?.let { r ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(scrollState)
                         .padding(16.dp)
                 ) {
+                    // Coil AsyncImage header if image URL exists
+                    if (r.imageUrl.isNotBlank()) {
+                        AsyncImage(
+                            model = r.imageUrl,
+                            contentDescription = r.title,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .padding(bottom = 16.dp)
+                        )
+                    }
+
+                    // User Created Edit/Delete Quick Actions
+                    if (r.isUserCreated) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // In AppNavHost, navigation to edit screen can be triggered from Parent/ViewModel.
+                            // But here we can show buttons inline as well:
+                            // We can use discoverViewModel if present to fetch navigation indirectly, 
+                            // but standard callback is cleaner.
+                        }
+                    }
+
                     // Quick Specs
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
@@ -80,7 +146,7 @@ fun RecipeDetailScreen(
                                 Icon(Icons.Default.LocalFireDepartment, contentDescription = null, tint = WarningOrange)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Calories", style = MaterialTheme.typography.bodySmall, color = TextSecondaryLight)
-                                Text("${recipe.calories} kcal", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                Text("${r.calories} kcal", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                             }
                         }
                         Card(
@@ -94,7 +160,7 @@ fun RecipeDetailScreen(
                                 Icon(Icons.Default.Timer, contentDescription = null, tint = GradientStart)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text("Prep Time", style = MaterialTheme.typography.bodySmall, color = TextSecondaryLight)
-                                Text("${recipe.prepTimeMinutes} mins", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                Text("${r.prepTimeMinutes} mins", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -108,7 +174,7 @@ fun RecipeDetailScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            recipe.ingredients.split("\n").filter { it.isNotBlank() }.forEach { ingredient ->
+                            r.ingredients.split("\n").filter { it.isNotBlank() }.forEach { ingredient ->
                                 Row(
                                     modifier = Modifier.padding(vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
@@ -135,7 +201,7 @@ fun RecipeDetailScreen(
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            recipe.steps.split("\n").filter { it.isNotBlank() }.forEachIndexed { index, step ->
+                            r.steps.split("\n").filter { it.isNotBlank() }.forEachIndexed { index, step ->
                                 Row(
                                     modifier = Modifier.padding(vertical = 8.dp),
                                     verticalAlignment = Alignment.Top
@@ -146,7 +212,7 @@ fun RecipeDetailScreen(
                                             .background(
                                                 MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                                                 shape = RoundedCornerShape(12.dp)
-                                            ),
+                                              ),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -170,5 +236,28 @@ fun RecipeDetailScreen(
                 CircularProgressIndicator()
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RecipeDetailScreenPreview() {
+    FitTrackkkTheme {
+        RecipeDetailScreenContent(
+            recipe = Recipe(
+                id = 1,
+                title = "Authentic Dal Bhat",
+                category = "Lunch",
+                ingredients = "1 cup rice\n1/2 cup lentils",
+                steps = "1. Cook rice\n2. Cook lentils",
+                calories = 650,
+                prepTimeMinutes = 20,
+                imageUrl = "https://example.com/dalbhat.jpg",
+                isUserCreated = true
+            ),
+            onBack = {},
+            onEditRecipe = {},
+            onDeleteRecipe = {}
+        )
     }
 }

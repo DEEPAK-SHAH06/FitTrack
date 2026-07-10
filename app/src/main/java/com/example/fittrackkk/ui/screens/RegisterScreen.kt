@@ -1,6 +1,7 @@
 package com.example.fittrackkk.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,26 +11,28 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fittrackkk.R
 import com.example.fittrackkk.ui.theme.ErrorRed
-import com.example.fittrackkk.ui.theme.GradientEnd
-import com.example.fittrackkk.ui.theme.GradientStart
+import com.example.fittrackkk.ui.theme.FitTrackkkTheme
 import com.example.fittrackkk.ui.theme.TextSecondaryLight
+import com.example.fittrackkk.viewmodel.AuthUiState
 import com.example.fittrackkk.viewmodel.AuthViewModel
 
 @Composable
@@ -38,13 +41,6 @@ fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToUserInfo: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var validationError by remember { mutableStateOf<String?>(null) }
-
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState.isLoggedIn) {
@@ -53,6 +49,32 @@ fun RegisterScreen(
             onNavigateToUserInfo()
         }
     }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.clearError()
+        }
+    }
+
+    RegisterScreenContent(
+        uiState = uiState,
+        onSignUp = { email, password -> viewModel.signUp(email, password) },
+        onNavigateToLogin = onNavigateToLogin
+    )
+}
+
+@Composable
+fun RegisterScreenContent(
+    uiState: AuthUiState,
+    onSignUp: (String, String) -> Unit,
+    onNavigateToLogin: () -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var validationError by remember { mutableStateOf<String?>(null) }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         Column(
@@ -63,22 +85,15 @@ fun RegisterScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(40.dp))
-            Box(
+            
+            // Header with App Logo
+            Image(
+                painter = painterResource(id = R.drawable.logo),
+                contentDescription = "FitTrack Logo",
                 modifier = Modifier
-                    .size(80.dp)
-                    .background(
-                        Brush.linearGradient(listOf(GradientStart, GradientEnd)),
-                        shape = RoundedCornerShape(20.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.FitnessCenter,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(20.dp))
+            )
             Spacer(modifier = Modifier.height(24.dp))
             Text("Create Account", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text("Start your fitness journey today", style = MaterialTheme.typography.bodyMedium, color = TextSecondaryLight)
@@ -91,7 +106,7 @@ fun RegisterScreen(
                 label = { Text("Email") },
                 leadingIcon = { Icon(Icons.Default.Email, contentDescription = null) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("emailInput"),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
@@ -112,7 +127,7 @@ fun RegisterScreen(
                     }
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("passwordInput"),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
@@ -133,19 +148,19 @@ fun RegisterScreen(
                     }
                 },
                 visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().testTag("confirmPasswordInput"),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Validation Error
+            // Validation or Auth Error
             val displayError = validationError ?: uiState.errorMessage
             AnimatedVisibility(visible = displayError != null) {
                 Card(
                     colors = CardDefaults.cardColors(containerColor = ErrorRed.copy(alpha = 0.1f)),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
                 ) {
                     Text(
                         displayError ?: "",
@@ -155,13 +170,12 @@ fun RegisterScreen(
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Register Button
             Button(
                 onClick = {
                     validationError = null
-                    viewModel.clearError()
                     if (email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
                         validationError = "Please fill in all fields"
                         return@Button
@@ -174,9 +188,9 @@ fun RegisterScreen(
                         validationError = "Passwords do not match"
                         return@Button
                     }
-                    viewModel.signUp(email, password)
+                    onSignUp(email, password)
                 },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
+                modifier = Modifier.fillMaxWidth().height(52.dp).testTag("signUpButton"),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !uiState.isLoading
             ) {
@@ -195,9 +209,21 @@ fun RegisterScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clickable { onNavigateToLogin() }
+                    modifier = Modifier.clickable { onNavigateToLogin() }.testTag("goToLogin")
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun RegisterScreenPreview() {
+    FitTrackkkTheme {
+        RegisterScreenContent(
+            uiState = AuthUiState(isLoading = false, errorMessage = null),
+            onSignUp = { _, _ -> },
+            onNavigateToLogin = {}
+        )
     }
 }

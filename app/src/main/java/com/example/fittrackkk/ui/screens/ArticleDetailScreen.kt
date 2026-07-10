@@ -7,20 +7,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.fittrackkk.ui.theme.GradientStart
+import com.example.fittrackkk.data.model.HealthArticle
+import com.example.fittrackkk.ui.theme.FitTrackkkTheme
 import com.example.fittrackkk.ui.theme.TextSecondaryLight
 import com.example.fittrackkk.viewmodel.DiscoverViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArticleDetailScreen(
     articleId: Int,
@@ -28,11 +27,24 @@ fun ArticleDetailScreen(
     onBack: () -> Unit
 ) {
     val selectedArticle by viewModel.selectedArticle.collectAsState()
-    val scrollState = rememberScrollState()
 
     LaunchedEffect(articleId) {
         viewModel.loadArticle(articleId)
     }
+
+    ArticleDetailScreenContent(
+        article = selectedArticle,
+        onBack = onBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ArticleDetailScreenContent(
+    article: HealthArticle?,
+    onBack: () -> Unit
+) {
+    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -55,21 +67,20 @@ fun ArticleDetailScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
-            selectedArticle?.let { article ->
+            article?.let { r ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(scrollState)
                         .padding(16.dp)
                 ) {
-                    // Category & Duration Row
                     Row(
                         modifier = Modifier.padding(bottom = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         SuggestionChip(
                             onClick = {},
-                            label = { Text(article.category) }
+                            label = { Text(r.category) }
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Icon(
@@ -80,20 +91,19 @@ fun ArticleDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${article.readTimeMinutes.toInt()} min read",
+                            text = "${r.readTimeMinutes.toInt()} min read",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondaryLight
                         )
                     }
 
                     Text(
-                        text = article.title,
+                        text = r.title,
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(bottom = 20.dp)
                     )
 
-                    // Article Content card
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
                         shape = RoundedCornerShape(16.dp),
@@ -101,8 +111,7 @@ fun ArticleDetailScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
                         Column(modifier = Modifier.padding(20.dp)) {
-                            // Split article by double newlines or single newlines for readable paragraph styling
-                            article.content.split("\n").filter { it.isNotBlank() }.forEach { paragraph ->
+                            r.content.split("\n").filter { it.isNotBlank() }.forEach { paragraph ->
                                 Text(
                                     text = paragraph,
                                     style = MaterialTheme.typography.bodyLarge,
@@ -120,5 +129,22 @@ fun ArticleDetailScreen(
                 CircularProgressIndicator()
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ArticleDetailScreenPreview() {
+    FitTrackkkTheme {
+        ArticleDetailScreenContent(
+            article = HealthArticle(
+                id = 1,
+                title = "Nutritional Benefits of Dal Bhat",
+                content = "Dal Bhat is the quintessential Nepalese meal, providing a balanced mix of complex carbohydrates (rice), protein (lentils), and essential vitamins and minerals.",
+                readTimeMinutes = 4f,
+                category = "Nutrition"
+            ),
+            onBack = {}
+        )
     }
 }
